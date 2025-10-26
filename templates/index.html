@@ -15,7 +15,24 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
+
   <body class="h-full bg-slate-900 text-slate-100">
+    <!--need this to show the flash messages from flask-->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div
+      class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md"
+    >
+      {% for category, message in messages %}
+      <div
+        class="px-4 py-3 rounded-xl shadow-lg text-center font-medium mb-2 animate-slideDown {% if category == 'success' %} bg-emerald-500/20 border border-emerald-400 text-emerald-300 {% elif category == 'error' %} bg-rose-500/20 border border-rose-400 text-rose-300 {% else %} bg-slate-700 border border-slate-500 text-slate-200 {% endif %}"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+
     <main class="mx-auto max-w-6xl px-4 py-8">
       <h1 class="text-3xl font-semibold mb-2">Dashboard</h1>
       <p class="text-slate-400 mb-6">
@@ -208,5 +225,33 @@
         </div>
       </section>
     </main>
+
+    <!--animation1-->
+    <script>
+      setTimeout(() => {
+        document.querySelectorAll(".fixed > div").forEach((el) => {
+          el.style.transition = "opacity 0.5s";
+          el.style.opacity = "0";
+          setTimeout(() => el.remove(), 500);
+        });
+      }, 3000);
+    </script>
+
+    <!--animation2-->
+    <style>
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-slideDown {
+        animation: slideDown 0.4s ease-out;
+      }
+    </style>
   </body>
 </html>
