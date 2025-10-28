@@ -27,16 +27,50 @@ with app.app_context():
 
 CATEGORIES = ['Food', 'Transportation', 'Rent', 'Utilities/Bills', 'Entertainment', 'Health']
 
+
+
+def parse_date_or_none(s: str):
+    if not s:
+        return None
+    for fmt in ("%Y-%m-%d", "%m-%d-%Y"):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+
 @app.route("/")
 def index():
+    start_str = (request.args.get("start") or "").strip()
+    end_str = (request.args.get("end") or "").strip()
 
-    expenses = Expense.query.order_by(Expense.date.desc(), Expense.id.desc()).all()
+    start_date = parse_date_or_none(start_str)
+    end_date = parse_date_or_none(end_str)
+
+    if start_date and end_date and end_date < start_date:
+        flash("The end date cannot be before the start date.", "error")
+        start_date = end_date = None
+        start_str = end_str = ""
+
+    q = Expense.query
+    if start_date:
+        q = q.filter(Expense.date >= start_date)
+    if end_date:
+        q = q.filter(Expense.date <= end_date)
+
+
+    expenses = q.order_by(Expense.date.desc(), Expense.id.desc()).all()
     total = round(sum(e.amount for e in expenses), 2)
     return render_template(
         "index.html", 
-        expenses=expenses,
         categories=CATEGORIES,
-        total=total
+        today = date.today().isoformat(),
+        expenses=expenses,
+        total=total,
+        start_str = start_str,
+        end_str = end_str
     )
 
 
@@ -51,12 +85,10 @@ def add():
     if not description or not amount_str or not category:
         flash("Please fill the description, amount, and category.", "error")
         redirect(url_for("index"))
-
     try: 
         amount = float(amount_str)
         if amount <= 0:
             raise ValueError
-
     except ValueError:
         flash("Amount must be greater than 0.", "error")
         return redirect(url_for("index"))
@@ -82,7 +114,6 @@ def delete(expense_id):
     db.session.commit()
     flash("Expense deleted.", "success")
     return redirect(url_for("index"))
-
 
 
 
