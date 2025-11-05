@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, url_for, make_response, flash, redirect, Response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-from datetime import date, datetime
+from datetime import date, datetime, date as dt_date
 app = Flask(__name__)
 
 
@@ -29,7 +29,6 @@ with app.app_context():
 CATEGORIES = ['Food', 'Transportation', 'Rent', 'Utilities/Bills', 'Entertainment', 'Health']
 
 
-
 def parse_date_or_none(s: str):
     if not s:
         return None
@@ -39,7 +38,6 @@ def parse_date_or_none(s: str):
         except ValueError:
             continue
     return None
-
 
 
 @app.route("/")
@@ -120,6 +118,7 @@ def index():
         day_values=day_values
     )
 
+
 @app.route("/add", methods=['POST'])
 def add():
     description = (request.form.get("description") or "" ).strip()
@@ -152,6 +151,7 @@ def add():
     flash("Expense added.", "success")
     return redirect(url_for("index"))
 
+
 @app.route('/delete/<int:expense_id>', methods=['POST'])
 def delete(expense_id):
     e = Expense.query.get_or_404(expense_id)
@@ -159,6 +159,13 @@ def delete(expense_id):
     db.session.commit()
     flash("Expense deleted.", "success")
     return redirect(url_for("index"))
+
+
+@app.route('/edit/<int:expense_id>', methods=['GET'])
+def edit(expense_id):
+    e = Expense.query.get_or_404(expense_id)
+    return render_template("edit.html", expense=e, categories=CATEGORIES, today=dt_date.today().isoformat)
+
 
 @app.route('/export.csv')
 def export_csv():
