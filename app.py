@@ -167,6 +167,44 @@ def edit(expense_id):
     return render_template("edit.html", expense=e, categories=CATEGORIES, today=dt_date.today().isoformat)
 
 
+@app.route('/edit/<int:expense_id>', methods=['POST'])
+def edit_post(expense_id):
+    e = Expense.query.get_or_404(expense_id)
+
+    description = (request.form.get("description") or "").strip()
+    amount_str = (request.form.get("amount") or "").strip()
+    category = (request.form.get("category") or "").strip()
+    date_str = (request.form.get("date") or "").strip()
+
+    print(request.form) #testing works
+
+    if not description or not amount_str or not category:
+        flash("Please fill description, amount, and category.", "error")
+        return redirect(url_for("edit", expense_id=expense_id))
+    try:
+        amount = float(amount_str)
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        flash("Amount must be a positive number.", "error")
+        return redirect(url_for("edit", expense_id=expense_id))
+    
+    try:
+        d = datetime.strptime(date_str, "%Y-%m-%d").date() if date_str else dt_date.today()
+    except ValueError:
+        d = dt_date.today()
+
+    e.description = description
+    e.amount = amount
+    e.category = category
+    e.date = d
+
+    db.session.commit()
+    flash("Expense updated.", "success")
+    return redirect(url_for("index"))
+    return render_template("edit.html", expense=e, categories=CATEGORIES, today=dt_date.today().isoformat)
+
+
 @app.route('/export.csv')
 def export_csv():
     start_str = (request.args.get("start") or "").strip()
@@ -203,8 +241,6 @@ def export_csv():
             "Content-Disposition": f"attachment; filename={filename}"
         }
     )
-
-
 
 
 
