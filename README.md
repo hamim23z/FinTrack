@@ -2,6 +2,8 @@
 
 **FinTrack** is a lightweight, full-stack personal finance tracker built with **Python**, **Flask**, **TailwindCSS**, **HTML**, and **SQLite**.  
 It helps users **track spending**, **filter expenses by date or category**, and **visualize their financial habits instantly** through interactive charts.
+<br> 
+<br> 
 Deployed using PythonAnywhere: https://hamim23z.pythonanywhere.com/
 
 ---
